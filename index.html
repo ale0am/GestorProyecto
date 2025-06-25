@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tareas Avanzado</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #2a2a2a;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid #3a3a3a;
+        }
+
+        h1 {
+            text-align: center;
+            color: #e0e0e0;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 600;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .form-section {
+            background: #343434;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #4a4a4a;
+        }
+
+        .form-section h2 {
+            color: #e0e0e0;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #b0b0b0;
+            font-weight: 400;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            background: #2a2a2a;
+            color: #e0e0e0;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #6c7b7f;
+            background: #333;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            background: #4a5568;
+            color: #e0e0e0;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #5a6578;
+        }
+
+        .btn:active {
+            background: #3a4558;
+        }
+
+        .timer-section {
+            background: #2d3748;
+            text-align: center;
+        }
+
+        .timer-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #e2e8f0;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .timer-controls .btn {
+            width: auto;
+            min-width: 80px;
+        }
+
+        .btn-start { background: #2d7d32; }
+        .btn-start:hover { background: #357a35; }
+        .btn-pause { background: #f57c00; }
+        .btn-pause:hover { background: #fb8c00; }
+        .btn-stop { background: #c62828; }
+        .btn-stop:hover { background: #d32f2f; }
+        .btn-reset { background: #455a64; }
+        .btn-reset:hover { background: #546e7a; }
+
+        .settings-section {
+            grid-column: 1 / -1;
+            background: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .tasks-section {
+            grid-column: 1 / -1;
+        }
+
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .task-card {
+            background: #343434;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #4a4a4a;
+            position: relative;
+            transition: border-color 0.2s ease;
+        }
+
+        .task-card:hover {
+            border-color: #6c7b7f;
+        }
+
+        .task-card.completed {
+            opacity: 0.6;
+            border-left: 3px solid #2d7d32;
+        }
+
+        .task-card.alarming {
+            border-left: 3px solid #f57c00;
+            background: #3a3220;
+            animation: pulse 1s infinite;
+        }
+
+        .task-card.overdue {
+            border-left: 3px solid #c62828;
+            background: #3a2a2a;
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #e0e0e0;
+            margin-bottom: 10px;
+        }
+
+        .task-description {
+            color: #b0b0b0;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .task-datetime {
+            font-size: 0.9em;
+            color: #9a9a9a;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .task-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .status-pending {
+            background: #4a5568;
+            color: #e2e8f0;
+        }
+
+        .status-completed {
+            background: #2d7d32;
+            color: #e8f5e9;
+        }
+
+        .status-alarming {
+            background: #f57c00;
+            color: #fff8e1;
+        }
+
+        .status-overdue {
+            background: #c62828;
+            color: #ffebee;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .task-actions .btn {
+            width: auto;
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .btn-acknowledge {
+            background: #f57c00;
+        }
+
+        .btn-acknowledge:hover {
+            background: #fb8c00;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4a5568;
+            color: #e0e0e0;
+            padding: 15px 20px;
+            border-radius: 6px;
+            border: 1px solid #6c7b7f;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+        }
+
+        .notification.success {
+            background: #2d7d32;
+            border-color: #357a35;
+        }
+
+        .notification.alarm {
+            background: #c62828;
+            border-color: #d32f2f;
+        }
+
+        .alarm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .alarm-content {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            border: 2px solid #f57c00;
+            animation: bounce 1s infinite;
+        }
+
+        .alarm-content h3 {
+            color: #f57c00;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .alarm-content p {
+            color: #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        .alarm-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .audio-preview {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .audio-preview button {
+            padding: 5px 10px;
+            font-size: 12px;
+            width: auto;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                background: #343434;
+            }
+            50% {
+                background: #3a3220;
+            }
+            100% {
+                background: #343434;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .timer-display {
+                font-size: 2em;
+            }
+            
+            .tasks-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #9a9a9a;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .grace-period-display {
+            font-size: 0.8em;
+            color: #f57c00;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1> Gestor de Tareas Avanzado</h1>
+        
+        <div class="form-section settings-section">
+            <h2>⚙️ Configuración de Alarmas</h2>
+            <div class="settings-grid">
+                <div class="form-group">
+                    <label for="alarmTone">Tono de Alarma</label>
+                    <select id="alarmTone">
+                        <option value="beep">🔔 Beep Clásico</option>
+                        <option value="bell">🛎️ Campana</option>
+                        <option value="chime">🎵 Carillón</option>
+                        <option value="buzz">📳 Vibración</option>
+                        <option value="custom">🎵 Audio Personalizado</option>
+                    </select>
+                    <div id="customAudioSection" style="display: none; margin-top: 10px;">
+                        <label for="customAudio">Subir Audio Personalizado</label>
+                        <input type="file" id="customAudio" accept="audio/*">
+                        <div id="audioPreview" class="audio-preview" style="display: none;">
+                            <button type="button" class="btn" onclick="taskManager.previewAudio()">▶ Probar</button>
+                            <span id="audioFileName"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="gracePeriod">Período de Gracia (minutos)</label>
+                    <select id="gracePeriod">
+                        <option value="5">5 minutos</option>
+                        <option value="10" selected>10 minutos</option>
+                        <option value="15">15 minutos</option>
+                        <option value="30">30 minutos</option>
+                        <option value="60">1 hora</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="alarmVolume">Volumen de Alarma</label>
+                    <input type="range" id="alarmVolume" min="0" max="100" value="70">
+                    <small style="color: #9a9a9a;">Volumen: <span id="volumeDisplay">70</span>%</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="form-section">
+                <h2>📋 Nueva Tarea</h2>
+                <form id="taskForm">
+                    <div class="form-group">
+                        <label for="taskTitle">Título de la tarea *</label>
+                        <input type="text" id="taskTitle" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskDescription">Descripción</label>
+                        <textarea id="taskDescription" placeholder="Describe tu tarea..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskDate">Fecha de recordatorio *</label>
+                        <input type="date" id="taskDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskTime">Hora de recordatorio *</label>
+                        <input type="time" id="taskTime" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskPriority">Prioridad</label>
+                        <select id="taskPriority">
+                            <option value="baja">🟢 Baja</option>
+                            <option value="media" selected>🟡 Media</option>
+                            <option value="alta">🔴 Alta</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn">+ Agregar Tarea</button>
+                </form>
+            </div>
+            
+            <div class="form-section timer-section">
+                <h2>⏱️ Temporizador</h2>
+                <div class="timer-display" id="timerDisplay">00:00:00</div>
+                <div class="timer-controls">
+                    <button class="btn btn-start" id="startTimer">▶ Iniciar</button>
+                    <button class="btn btn-pause" id="pauseTimer">⏸ Pausar</button>
+                    <button class="btn btn-stop" id="stopTimer">⏹ Detener</button>
+                    <button class="btn btn-reset" id="resetTimer">↻ Reiniciar</button>
+                </div>
+                <div style="margin-top: 15px;">
+                    <label for="timerTask">Tarea actual:</label>
+                    <select id="timerTask">
+                        <option value="">Seleccionar tarea...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-section tasks-section">
+            <h2>📋 Mis Tareas</h2>
+            <div id="tasksContainer">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                    </svg>
+                    <p>No tienes tareas aún. ¡Agrega tu primera tarea!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TaskManager {
+            constructor() {
+                this.tasks = [];
+                this.timerInterval = null;
+                this.timerSeconds = 0;
+                this.timerRunning = false;
+                this.checkInterval = null;
+                this.currentTimerTask = null;
+                this.alarmAudio = null;
+                this.customAudio = null;
+                this.activeAlarms = new Map(); // Para manejar múltiples alarmas activas
+                this.currentPlayingAudio = null; // Para controlar el audio actualmente reproduciéndose
+
+                
+                this.initializeElements();
+                this.bindEvents();
+                this.startAlarmCheck();
+                this.setMinDateTime();
+                this.initializeAudioTones();
+            }
+            
+            initializeElements() {
+                this.taskForm = document.getElementById('taskForm');
+                this.tasksContainer = document.getElementById('tasksContainer');
+                this.timerDisplay = document.getElementById('timerDisplay');
+                this.timerTaskSelect = document.getElementById('timerTask');
+                
+                this.startTimerBtn = document.getElementById('startTimer');
+                this.pauseTimerBtn = document.getElementById('pauseTimer');
+                this.stopTimerBtn = document.getElementById('stopTimer');
+                this.resetTimerBtn = document.getElementById('resetTimer');
+
+                // Elementos de configuración
+                this.alarmToneSelect = document.getElementById('alarmTone');
+                this.customAudioSection = document.getElementById('customAudioSection');
+                this.customAudioInput = document.getElementById('customAudio');
+                this.gracePeriodSelect = document.getElementById('gracePeriod');
+                this.alarmVolumeInput = document.getElementById('alarmVolume');
+                this.volumeDisplaySpan = document.getElementById('volumeDisplay');
+            }
+            
+            bindEvents() {
+                this.taskForm.addEventListener('submit', (e) => this.addTask(e));
+                
+                this.startTimerBtn.addEventListener('click', () => this.startTimer());
+                this.pauseTimerBtn.addEventListener('click', () => this.pauseTimer());
+                this.stopTimerBtn.addEventListener('click', () => this.stopTimer());
+                this.resetTimerBtn.addEventListener('click', () => this.resetTimer());
+
+                // Eventos de configuración
+                this.alarmToneSelect.addEventListener('change', () => this.handleAlarmToneChange());
+                this.customAudioInput.addEventListener('change', () => this.handleCustomAudioUpload());
+                this.alarmVolumeInput.addEventListener('input', (e) => {
+                    this.volumeDisplaySpan.textContent = e.target.value;
+                });
+            }
+
+            initializeAudioTones() {
+                this.audioTones = {
+                    beep: this.createBeepTone(),
+                    bell: this.createBellTone(),
+                    chime: this.createChimeTone(),
+                    buzz: this.createBuzzTone()
+                };
+            }
+
+            createBeepTone() {
+                // Crear un beep usando Web Audio API
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.type = 'sine';
+                
+                return { audioContext, oscillator, gainNode };
+            }
+
+            createBellTone() {
+                // Simulación de campana con múltiples frecuencias
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmQdBz2U2u+8ayEIL4bR7s2QQAoKb8rxsnYrBjiS1O2xbyEIL4bR7s2QQAoKb8rxsnYrBjiS1O2xbyEIL4bR7s2QQAoKb8rxsnYrBjiS1O2xbyEIL4bR7s2QQAoKb8rxsnYrBjiS1O2xbyEI');
+                return audio;
+            }
+
+            createChimeTone() {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmQdBz2U2u+8ayEIL4bR7s2QQAoKb8rxsnYrBjiS1O2xbyEIL4bR7s2QQAoKb8rxsnYrBjiS1O2xbyEIL4bR7s2QQAoKb8rxsnYrBjiS1O2xbyEIL4bR7s2QQAoKb8rxsnYrBjiS1O2xbyEI');
+                return audio;
+            }
+
+            createBuzzTone() {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmQdBz2U2u+8ayEIL4bR7s2QQAoKb8rxsnYrBjiS1O2xbyEIL4bR7s2QQAoKb8rxsnYrBjiS1O2xbyEIL4bR7s2QQAoKb8rxsnYrBjiS1O2xbyEIL4bR7s2QQAoKb8rxsnYrBjiS1O2xbyEI');
+                return audio;
+            }
+
+            handleAlarmToneChange() {
+                const selectedTone = this.alarmToneSelect.value;
+                if (selectedTone === 'custom') {
+                    this.customAudioSection.style.display = 'block';
+                } else {
+                    this.customAudioSection.style.display = 'none';
+                }
+            }
+
+            handleCustomAudioUpload() {
+                const file = this.customAudioInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.customAudio = new Audio(e.target.result);
+                        document.getElementById('audioFileName').textContent = file.name;
+                        document.getElementById('audioPreview').style.display = 'flex';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            previewAudio() {
+                // Detener cualquier preview anterior
+                this.stopCurrentAudio();
+                
+                const selectedTone = this.alarmToneSelect.value;
+                const volume = this.alarmVolumeInput.value / 100;
+
+                if (selectedTone === 'custom' && this.customAudio) {
+                    this.customAudio.volume = volume;
+                    this.customAudio.currentTime = 0;
+                    this.customAudio.loop = false; // Solo una reproducción para preview
+                    this.currentPlayingAudio = this.customAudio;
+                    this.customAudio.play().catch(() => {});
+                    
+                    // Detener después de 3 segundos
+                    setTimeout(() => this.stopCurrentAudio(), 3000);
+                } else if (this.audioTones[selectedTone]) {
+                    if (selectedTone === 'beep') {
+                        const { audioContext, oscillator, gainNode } = this.createBeepTone();
+                        gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.5);
+                    } else {
+                        const audio = this.audioTones[selectedTone];
+                        audio.volume = volume;
+                        audio.currentTime = 0;
+                        audio.loop = false;
+                        this.currentPlayingAudio = audio;
+                        audio.play().catch(() => {});
+                        
+                        // Detener después de 3 segundos
+                        setTimeout(() => this.stopCurrentAudio(), 3000);
+                    }
+                }
+            }
+
+            playAlarmSound() {
+                // Detener cualquier audio que esté reproduciéndose actualmente
+                this.stopCurrentAudio();
+                
+                const selectedTone = this.alarmToneSelect.value;
+                const volume = this.alarmVolumeInput.value / 100;
+
+                if (selectedTone === 'custom' && this.customAudio) {
+                    this.customAudio.volume = volume;
+                    this.customAudio.currentTime = 0;
+                    this.customAudio.loop = true; // Para que se repita
+                    this.currentPlayingAudio = this.customAudio;
+                    this.customAudio.play().catch(() => {});
+                } else if (this.audioTones[selectedTone]) {
+                    if (selectedTone === 'beep') {
+                        // Para el beep sintético, crear un loop manual
+                        this.playBeepLoop(volume);
+                    } else {
+                        const audio = this.audioTones[selectedTone];
+                        audio.volume = volume;
+                        audio.currentTime = 0;
+                        audio.loop = true;
+                        this.currentPlayingAudio = audio;
+                        audio.play().catch(() => {});
+                    }
+                }
+            }
+
+            stopCurrentAudio() {
+                if (this.currentPlayingAudio) {
+                    this.currentPlayingAudio.pause();
+                    this.currentPlayingAudio.currentTime = 0;
+                    this.currentPlayingAudio.loop = false;
+                    this.currentPlayingAudio = null;
+                    this.beepLoopInterval = null; // Para controlar el loop del beep sintético
+
+                }
+                
+                // Detener beep loop si está activo
+                if (this.beepLoopInterval) {
+                    clearInterval(this.beepLoopInterval);
+                    this.beepLoopInterval = null;
+                }
+            }
+
+            playBeepLoop(volume) {
+                this.beepLoopInterval = setInterval(() => {
+                    const { audioContext, oscillator, gainNode } = this.createBeepTone();
+                    gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                }, 1000); // Repetir cada segundo
+            }            
+            setMinDateTime() {
+                const now = new Date();
+                const today = now.toISOString().split('T')[0];
+                document.getElementById('taskDate').min = today;
+            }
+            
+            addTask(e) {
+                e.preventDefault();
+                
+                const title = document.getElementById('taskTitle').value;
+                const description = document.getElementById('taskDescription').value;
+                const date = document.getElementById('taskDate').value;
+                const time = document.getElementById('taskTime').value;
+                const priority = document.getElementById('taskPriority').value;
+                
+                const task = {
+                    id: Date.now(),
+                    title,
+                    description,
+                    datetime: new Date(`${date}T${time}`),
+                    priority,
+                    completed: false,
+                    timeSpent: 0,
+                    alarmTriggered: false,
+                    acknowledged: false,
+                    graceEndTime: null
+                };
+                
+                this.tasks.push(task);
+                this.renderTasks();
+                this.updateTimerTaskSelect();
+                this.taskForm.reset();
+                this.setMinDateTime();
+                
+                this.showNotification('✓ Tarea agregada correctamente', 'success');
+            }
+            
+            renderTasks() {
+                if (this.tasks.length === 0) {
+                    this.tasksContainer.innerHTML = `
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                            </svg>
+                            <p>No tienes tareas aún. ¡Agrega tu primera tarea!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const sortedTasks = [...this.tasks].sort((a, b) => a.datetime - b.datetime);
+                
+                this.tasksContainer.innerHTML = `
+                    <div class="tasks-grid">
+                        ${sortedTasks.map(task => this.renderTaskCard(task)).join('')}
+                    </div>
+                `;
+            }
+            
+            renderTaskCard(task) {
+                const now = new Date();
+                const isOverdue = task.graceEndTime && now > task.graceEndTime && !task.completed;
+                const isAlarming = task.alarmTriggered && !task.acknowledged && !task.completed;
+                const timeSpentFormatted = this.formatTime(task.timeSpent);
+                
+                let statusClass = 'status-pending';
+                let statusText = ' Pendiente';
+                let cardClass = '';
+                
+                if (task.completed) {
+                    statusClass = 'status-completed';
+                    statusText = '✓ Completada';
+                    cardClass = 'completed';
+                } else if (isOverdue) {
+                    statusClass = 'status-overdue';
+                    statusText = '⚠ Vencida';
+                    cardClass = 'overdue';
+                } else if (isAlarming) {
+                    statusClass = 'status-alarming';
+                    statusText = ' ¡Alarma!';
+                    cardClass = 'alarming';
+                }
+                
+                const priorityIcon = {
+                    'baja': '●',
+                    'media': '●',
+                    'alta': '●'
+                };
+
+                let graceDisplay = '';
+                if (task.alarmTriggered && task.graceEndTime && !task.completed) {
+                    const timeLeft = Math.max(0, Math.floor((task.graceEndTime - now) / 1000 / 60));
+                    if (timeLeft > 0) {
+                        graceDisplay = `<div class="grace-period-display">⏰ Tiempo restante: ${timeLeft} minutos</div>`;
+                    }
+                }
+                
+                return `
+                    <div class="task-card ${cardClass}">
+                        <div class="task-title">${task.title}</div>
+                        ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                        <div class="task-datetime">
+                            📅 ${task.datetime.toLocaleDateString()} ⏰ ${task.datetime.toLocaleTimeString()}
+                        </div>
+                        <div class="task-status ${statusClass}">${statusText}</div>
+                        ${graceDisplay}
+                        <div style="margin-bottom: 10px; color: #9a9a9a;">
+                            <small>Prioridad: <span style="color: ${task.priority === 'alta' ? '#c62828' : task.priority === 'media' ? '#f57c00' : '#2d7d32'}">${priorityIcon[task.priority]}</span> ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</small>
+                        </div>
+                        <div style="margin-bottom: 15px; color: #9a9a9a;">
+                            <small> Tiempo invertido: ${timeSpentFormatted}</small>
+                        </div>
+                        <div class="task-actions">
+                            ${!task.completed ? `<button class="btn" onclick="taskManager.completeTask(${task.id})">✓ Completar</button>` : ''}
+                            ${isAlarming ? `<button class="btn btn-acknowledge" onclick="taskManager.acknowledgeAlarm(${task.id})"> Reconocer</button>` : ''}
+                            <button class="btn" onclick="taskManager.deleteTask(${task.id})" style="background: #c62828;">✕ Eliminar</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            acknowledgeAlarm(id) {
+                const task = this.tasks.find(t => t.id === id);
+                if (task) {
+                    task.acknowledged = true;
+                    this.stopCurrentAudio();
+
+                    
+                    // Detener la alarma activa si existe
+                    if (this.activeAlarms.has(id)) {
+                        clearInterval(this.activeAlarms.get(id).interval);
+                        this.activeAlarms.delete(id);
+                    }
+
+                    // Cerrar modal si está abierto
+                    const modal = document.getElementById(`alarm-modal-${id}`);
+                    if (modal) {
+                        modal.remove();
+                        
+                    }
+
+                    this.renderTasks();
+                    this.showNotification(' Alarma reconocida', 'success');
+                }
+            }
+            
+            completeTask(id) {
+                const task = this.tasks.find(t => t.id === id);
+                if (task) {
+                    task.completed = true;
+                    task.acknowledged = true;
+                    this.stopCurrentAudio();
+
+                    
+                    // Detener alarma si está activa
+                    if (this.activeAlarms.has(id)) {
+                        clearInterval(this.activeAlarms.get(id).interval);
+                        this.activeAlarms.delete(id);
+                    }
+
+                    // Cerrar modal si está abierto
+                    const modal = document.getElementById(`alarm-modal-${id}`);
+                    if (modal) {
+                        modal.remove();
+                    }
+
+                    this.renderTasks();
+                    this.updateTimerTaskSelect();
+                    this.showNotification('✓ Tarea completada', 'success');
+                }
+            }
+            
+            deleteTask(id) {
+                // Detener alarma si está activa
+                this.stopCurrentAudio();
+
+                if (this.activeAlarms.has(id)) {
+                    clearInterval(this.activeAlarms.get(id).interval);
+                    this.activeAlarms.delete(id);
+                }
+
+                // Cerrar modal si está abierto
+                const modal = document.getElementById(`alarm-modal-${id}`);
+                if (modal) {
+                    modal.remove();
+                }
+
+                this.tasks = this.tasks.filter(t => t.id !== id);
+                this.renderTasks();
+                this.updateTimerTaskSelect();
+                this.showNotification('✕ Tarea eliminada', 'success');
+            }
+            
+            updateTimerTaskSelect() {
+                const incompleteTasks = this.tasks.filter(t => !t.completed);
+                this.timerTaskSelect.innerHTML = '<option value="">Seleccionar tarea...</option>' +
+                    incompleteTasks.map(task => `<option value="${task.id}">${task.title}</option>`).join('');
+            }
+            
+            startTimer() {
+                if (!this.timerRunning) {
+                    this.timerRunning = true;
+                    this.currentTimerTask = this.timerTaskSelect.value;
+                    
+                    this.timerInterval = setInterval(() => {
+                        this.timerSeconds++;
+                        this.updateTimerDisplay();
+                        
+                        if (this.currentTimerTask) {
+                            const task = this.tasks.find(t => t.id == this.currentTimerTask);
+                            if (task) {
+                                task.timeSpent++;
+                            }
+                        }
+                    }, 1000);
+                    
+                    this.startTimerBtn.textContent = '▶ Ejecutando...';
+                    this.startTimerBtn.disabled = true;
+                }
+            }
+            
+            pauseTimer() {
+                if (this.timerRunning) {
+                    this.timerRunning = false;
+                    clearInterval(this.timerInterval);
+                    this.startTimerBtn.textContent = '▶ Continuar';
+                    this.startTimerBtn.disabled = false;
+                }
+            }
+            
+            stopTimer() {
+                this.timerRunning = false;
+                clearInterval(this.timerInterval);
+                this.startTimerBtn.textContent = '▶ Iniciar';
+                this.startTimerBtn.disabled = false;
+                this.currentTimerTask = null;
+                this.renderTasks();
+            }
+            
+            resetTimer() {
+                this.stopTimer();
+                this.timerSeconds = 0;
+                this.updateTimerDisplay();
+            }
+            
+            updateTimerDisplay() {
+                this.timerDisplay.textContent = this.formatTime(this.timerSeconds);
+            }
+            
+            formatTime(seconds) {
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            
+            startAlarmCheck() {
+                this.checkInterval = setInterval(() => {
+                    const now = new Date();
+                    
+                    this.tasks.forEach(task => {
+                        if (!task.completed) {
+                            // Verificar si es hora de activar la alarma
+                            if (!task.alarmTriggered && task.datetime <= now) {
+                                this.triggerAlarm(task);
+                            }
+                            
+                            // Verificar si el período de gracia ha terminado
+                            if (task.alarmTriggered && task.graceEndTime && now > task.graceEndTime && !task.acknowledged) {
+                                // Marcar como vencida después del período de gracia
+                                this.markAsOverdue(task);
+                            }
+                        }
+                    });
+                }, 1000);
+            }
+
+            triggerAlarm(task) {
+                task.alarmTriggered = true;
+                const gracePeriodMinutes = parseInt(this.gracePeriodSelect.value);
+                task.graceEndTime = new Date(Date.now() + gracePeriodMinutes * 60 * 1000);
+                
+                // Reproducir sonido de alarma
+                this.playAlarmSound();
+                
+                // Mostrar modal de alarma
+                this.showAlarmModal(task);
+                
+                // Configurar repetición de la alarma cada 30 segundos hasta que sea reconocida
+                const alarmInterval = setInterval(() => {
+                    if (task.acknowledged || task.completed) {
+                        clearInterval(alarmInterval);
+                        this.activeAlarms.delete(task.id);
+                        return;
+                    }
+                    this.playAlarmSound();
+                }, 30000);
+
+                this.activeAlarms.set(task.id, { interval: alarmInterval });
+                
+                this.renderTasks();
+                this.showNotification(`⚠ ¡Alarma activada para: ${task.title}!`, 'alarm');
+            }
+
+            showAlarmModal(task) {
+                // Remover modal existente si existe
+                const existingModal = document.getElementById(`alarm-modal-${task.id}`);
+                if (existingModal) {
+                    existingModal.remove();
+                }
+
+                const modal = document.createElement('div');
+                modal.id = `alarm-modal-${task.id}`;
+                modal.className = 'alarm-modal';
+                modal.innerHTML = `
+                    <div class="alarm-content">
+                        <h3> ¡ALARMA!</h3>
+                        <p><strong>${task.title}</strong></p>
+                        ${task.description ? `<p>${task.description}</p>` : ''}
+                        <p>Hora programada: ${task.datetime.toLocaleTimeString()}</p>
+                        <div class="alarm-actions">
+                            <button class="btn btn-acknowledge" onclick="taskManager.acknowledgeAlarm(${task.id})">
+                                 Reconocer
+                            </button>
+                            <button class="btn" onclick="taskManager.completeTask(${task.id})" style="background: #2d7d32;">
+                                ✓ Completar
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+
+                // Auto-cerrar modal después del período de gracia si no se reconoce
+                const gracePeriodMinutes = parseInt(this.gracePeriodSelect.value);
+                setTimeout(() => {
+                    if (!task.acknowledged && !task.completed) {
+                        modal.remove();
+                    }
+                }, gracePeriodMinutes * 60 * 1000);
+            }
+
+            markAsOverdue(task) {
+                // La tarea ya está marcada implícitamente como vencida por el tiempo
+                // pero podemos agregar lógica adicional aquí si es necesario
+                
+                // Detener la alarma activa
+                if (this.activeAlarms.has(task.id)) {
+                    clearInterval(this.activeAlarms.get(task.id).interval);
+                    this.activeAlarms.delete(task.id);
+                }
+
+                // Cerrar modal si está abierto
+                const modal = document.getElementById(`alarm-modal-${task.id}`);
+                if (modal) {
+                    modal.remove();
+                }
+
+                this.renderTasks();
+                this.showNotification(`⚠ Tarea "${task.title}" marcada como vencida`, 'alarm');
+            }
+            
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 4000);
+            }
+        }
+        
+        const taskManager = new TaskManager();
+    </script>
+</body>
+</html>
